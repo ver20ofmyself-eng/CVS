@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: cvs_user
+      POSTGRES_PASSWORD: cvs_password
+      POSTGRES_DB: cvs_analyzer
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cvs_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      DATABASE_URL: postgresql://cvs_user:cvs_password@postgres:5432/cvs_analyzer
+      SECRET_KEY: your-secret-key-change-in-production
+      AI_MODE: MOCK  # Исправлено: было AI_MODE=MOCK (неправильно)
+      DEEPSEEK_API_KEY: ""  # Пустой ключ для MOCK режима
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  

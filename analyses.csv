@@ -1,0 +1,10 @@
+ID,Дата,Вакансия,Оценка,Рекомендация,Совпавшие навыки,Отсутствующие навыки,Опыт (лет),Локация,Зарплата,Режим,Промпт
+10,2026-02-14 18:23,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,5,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+9,2026-02-14 18:23,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,4,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+8,2026-02-14 18:23,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,3,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+7,2026-02-14 18:19,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,5,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+6,2026-02-14 18:19,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,4,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+5,2026-02-14 18:19,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,3,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+4,2026-02-14 18:14,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,5,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+3,2026-02-14 18:14,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,4,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)
+2,2026-02-14 18:14,Python Developer for History Test,10.0,Пригласить на интервью,"Python, FastAPI, PostgreSQL, Docker",,3,True,unknown,MOCK (enhanced),default_cv_analyzer (mock)

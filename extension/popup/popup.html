@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>CVS Analyzer</title>
+    <link rel="stylesheet" href="popup.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="cvs-popup-container">
+        <div class="cvs-popup-header">
+            <div class="cvs-logo">
+                <span class="cvs-logo-icon">🔍</span>
+                <span class="cvs-logo-text">CVS Analyzer</span>
+            </div>
+            <div class="cvs-version">v1.0</div>
+        </div>
+
+        <!-- Состояние: неавторизован -->
+        <div id="unauthorized" class="cvs-section cvs-section-auth">
+            <div class="cvs-auth-form">
+                <h3 class="cvs-section-title">Вход в систему</h3>
+                <div class="cvs-input-group">
+                    <input type="email" id="email" placeholder="Email" class="cvs-input" value="admin@example.com">
+                </div>
+                <div class="cvs-input-group">
+                    <input type="password" id="password" placeholder="Пароль" class="cvs-input" value="admin123">
+                </div>
+                <button id="login-btn" class="cvs-button cvs-button-primary cvs-button-full">
+                    <span class="cvs-button-icon">🔐</span>
+                    <span>Войти</span>
+                </button>
+                <div class="cvs-error-message" id="login-error"></div>
+            </div>
+        </div>
+
+        <!-- Состояние: авторизован -->
+        <div id="authorized" class="cvs-section cvs-section-authorized" style="display: none;">
+            <div class="cvs-user-info">
+                <div class="cvs-user-badge">
+                    <span class="cvs-user-avatar">👤</span>
+                    <span id="user-email" class="cvs-user-email"></span>
+                </div>
+                <div class="cvs-analyses-badge" id="analyses-left">осталось: 0</div>
+            </div>
+
+            <div class="cvs-section">
+                <h3 class="cvs-section-title cvs-section-title-small">Вакансии</h3>
+                <div class="cvs-select-wrapper">
+                    <select id="vacancy-select" class="cvs-select">
+                        <option value="">Загрузка...</option>
+                    </select>
+                    <button id="refresh-vacancies" class="cvs-icon-button" title="Обновить список">
+                        <span>🔄</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="cvs-section cvs-section-compact">
+                <h3 class="cvs-section-title cvs-section-title-small">Настройки</h3>
+                <label class="cvs-checkbox">
+                    <input type="checkbox" id="auto-analyze">
+                    <span class="cvs-checkbox-label">Автоанализ при загрузке</span>
+                </label>
+                <label class="cvs-checkbox">
+                    <input type="checkbox" id="show-notifications">
+                    <span class="cvs-checkbox-label">Показывать уведомления</span>
+                </label>
+            </div>
+
+            <div class="cvs-stats-section">
+                <h3 class="cvs-section-title cvs-section-title-small">Статистика</h3>
+                <div class="cvs-stats-grid">
+                    <div class="cvs-stat-item">
+                        <span class="cvs-stat-value" id="today-analyses">0</span>
+                        <span class="cvs-stat-label">сегодня</span>
+                    </div>
+                    <div class="cvs-stat-item">
+                        <span class="cvs-stat-value" id="cached-analyses">0</span>
+                        <span class="cvs-stat-label">в кэше</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cvs-actions">
+                <button id="analyze-current" class="cvs-button cvs-button-primary cvs-button-full">
+                    <span class="cvs-button-icon">⚡</span>
+                    <span>Анализировать текущую страницу</span>
+                </button>
+                <button id="logout-btn" class="cvs-button cvs-button-text">Выйти</button>
+            </div>
+        </div>
+
+        <div id="loading" class="cvs-loading-overlay" style="display: none;">
+            <div class="cvs-spinner"></div>
+            <span>Загрузка...</span>
+        </div>
+    </div>
+
+    <script src="../utils/api.js"></script>
+    <script src="popup.js"></script>
+</body>
+
+</html>
