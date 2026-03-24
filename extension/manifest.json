@@ -1,0 +1,54 @@
+{
+    "manifest_version": 3,
+    "name": "CVS Analyzer",
+    "version": "1.0.1",
+    "description": "AI-анализ резюме на соответствие вакансии. Работает на hh.ru.",
+    "permissions": ["storage", "activeTab", "scripting"],
+    "host_permissions": [
+        "https://hh.ru/*",
+        "https://*.hh.ru/*",
+        "http://localhost:8000/*",
+        "http://127.0.0.1:8000/*",
+        "https://api.cvsanalyzer.ru/*"
+    ],
+    "action": {
+        "default_popup": "popup/popup.html",
+        "default_icon": {
+            "16": "icons/icon16.png",
+            "32": "icons/icon32.png",
+            "48": "icons/icon48.png",
+            "128": "icons/icon128.png"
+        }
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://hh.ru/resume/*", "https://*.hh.ru/resume/*"],
+            "js": [
+                "utils/storage.js",
+                "utils/cache.js",
+                "utils/api.js",
+                "utils/parser.js",
+                "content/hh.ru.js",
+                "content/content.js"
+            ],
+            "css": ["content/content.css"],
+            "run_at": "document_end"
+        }
+    ],
+    "background": {
+        "service_worker": "background/service-worker.js",
+        "type": "module"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": ["icons/*"],
+            "matches": ["https://hh.ru/*", "https://*.hh.ru/*"]
+        }
+    ],
+    "icons": {
+        "16": "icons/icon16.png",
+        "32": "icons/icon32.png",
+        "48": "icons/icon48.png",
+        "128": "icons/icon128.png"
+    }
+}
