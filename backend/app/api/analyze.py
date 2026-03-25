@@ -15,7 +15,7 @@ from app.models.vacancy import Vacancy
 from app.models.analyses import Analysis
 from app.models.prompt import Prompt
 from app.api.auth import get_current_user
-from app.services.ai_service import ai_service
+from app.services.ai_service import ai_service, AIServiceError
 from app.services.tariff_service import tariff_service
 from app.schemas.analysis import (
     AnalysisResponse,
@@ -137,7 +137,7 @@ async def analyze_cv(
             vacancy_dict,
             request.cv_text,
             db=db,
-            prompt_name=request.prompt_name
+            user_id=current_user.id,
         )
 
         processing_time = (datetime.now() - start_time).total_seconds()
@@ -197,6 +197,12 @@ async def analyze_cv(
 
         return response
 
+    except AIServiceError as e:
+        logger.error(f"❌ Ошибка AI-сервиса: {e.technical}")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=e.user_message,
+        )
     except Exception as e:
         logger.error(f"❌ Ошибка при анализе: {e}")
         raise HTTPException(

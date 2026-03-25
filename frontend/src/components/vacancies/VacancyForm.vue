@@ -1,66 +1,74 @@
 <template>
-  <div class="vacancy-form">
-    <form @submit.prevent="handleSubmit" class="form">
+  <div class="vf">
+    <form @submit.prevent="handleSubmit">
 
-      <!-- Основная информация -->
-      <div class="form-section">
-        <h3 class="section-title">Основная информация</h3>
-        <div class="form-grid">
-          <div class="form-group full-width">
-            <label for="title" class="form-label">
-              Название вакансии <span class="required">*</span>
-            </label>
+      <!-- ── Основная информация ────────────────────────────────────────── -->
+      <section class="vf-section">
+        <h3 class="vf-section-title">Основная информация</h3>
+        <div class="vf-grid">
+          <div class="vf-field vf-full">
+            <label class="vf-label">Название вакансии <span class="vf-req">*</span></label>
             <input
-              id="title"
               v-model="form.title"
               type="text"
-              class="input"
+              class="vf-input"
+              :class="{ 'vf-input--error': errors.title }"
               placeholder="Например: Senior Python Developer"
-              required
-              :class="{ 'error': errors.title }"
-              @blur="validateField('title')"
+              @blur="validateTitle"
             />
-            <span v-if="errors.title" class="error-text">{{ errors.title }}</span>
+            <span v-if="errors.title" class="vf-error-msg">{{ errors.title }}</span>
           </div>
 
-          <div class="form-group">
-            <label for="location" class="form-label">Локация</label>
-            <input
-              id="location"
-              v-model="form.location"
-              type="text"
-              class="input"
-              placeholder="Москва, удалённо, гибрид..."
-            />
+          <div class="vf-field">
+            <label class="vf-label">Локация</label>
+            <input v-model="form.location" type="text" class="vf-input" placeholder="Москва, удалённо, гибрид..." />
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Статус</label>
-            <div class="toggle-group">
-              <label class="toggle-label">
-                <input v-model="form.is_active" type="checkbox" class="toggle-checkbox" />
-                <span class="toggle-text">{{ form.is_active ? 'Активна' : 'В архиве' }}</span>
-              </label>
-            </div>
+          <div class="vf-field vf-toggle-field">
+            <label class="vf-label">Статус вакансии</label>
+            <label class="vf-toggle">
+              <input v-model="form.is_active" type="checkbox" class="vf-toggle-input" />
+              <span class="vf-toggle-track">
+                <span class="vf-toggle-thumb"></span>
+              </span>
+              <span class="vf-toggle-label">{{ form.is_active ? 'Активна' : 'В архиве' }}</span>
+            </label>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Зарплатная вилка -->
-      <div class="form-section">
-        <h3 class="section-title">Зарплатная вилка</h3>
-        <div class="form-grid salary-grid">
-          <div class="form-group">
-            <label for="salary_min" class="form-label">От (₽)</label>
-            <input id="salary_min" v-model.number="form.salary_range.min" type="number" class="input" placeholder="100000" min="0" step="1000" />
+      <!-- ── Зарплатная вилка ──────────────────────────────────────────── -->
+      <section class="vf-section">
+        <h3 class="vf-section-title">Зарплатная вилка</h3>
+        <p class="vf-section-hint">Оба поля необязательны. Если «от» больше «до» — значения автоматически поменяются.</p>
+        <div class="vf-grid vf-salary-grid">
+          <div class="vf-field">
+            <label class="vf-label">От</label>
+            <input
+              v-model.number="form.salary_range.min"
+              type="number"
+              class="vf-input"
+              placeholder="100 000"
+              min="0"
+              step="1000"
+              @blur="normalizeSalary"
+            />
           </div>
-          <div class="form-group">
-            <label for="salary_max" class="form-label">До (₽)</label>
-            <input id="salary_max" v-model.number="form.salary_range.max" type="number" class="input" placeholder="200000" min="0" step="1000" />
+          <div class="vf-field">
+            <label class="vf-label">До</label>
+            <input
+              v-model.number="form.salary_range.max"
+              type="number"
+              class="vf-input"
+              placeholder="200 000"
+              min="0"
+              step="1000"
+              @blur="normalizeSalary"
+            />
           </div>
-          <div class="form-group">
-            <label for="currency" class="form-label">Валюта</label>
-            <select id="currency" v-model="form.salary_range.currency" class="select">
+          <div class="vf-field">
+            <label class="vf-label">Валюта</label>
+            <select v-model="form.salary_range.currency" class="vf-select">
               <option value="RUB">🇷🇺 RUB</option>
               <option value="USD">🇺🇸 USD</option>
               <option value="EUR">🇪🇺 EUR</option>
@@ -68,127 +76,119 @@
             </select>
           </div>
         </div>
-        <span v-if="errors.salary_range" class="error-text">{{ errors.salary_range }}</span>
-      </div>
+      </section>
 
-      <!-- Ключевые навыки — задача 2: добавлена поддержка ";" -->
-      <div class="form-section">
-        <h3 class="section-title">
+      <!-- ── Ключевые навыки ───────────────────────────────────────────── -->
+      <section class="vf-section">
+        <h3 class="vf-section-title">
           Ключевые навыки
-          <span class="section-subtitle">Enter, запятая или точка с запятой «;» разделяют навыки. Можно вставить список: «python;flask;docker»</span>
+          <span class="vf-title-badge">Enter · «,» · «;» разделяют навыки</span>
         </h3>
-
-        <div class="skills-input-container">
-          <div class="skills-tags">
-            <span v-for="(skill, index) in form.key_skills" :key="index" class="skill-tag">
+        <div class="vf-skills-box" :class="{ 'vf-skills-box--focus': skillsFocused }">
+          <div class="vf-skills-tags">
+            <span v-for="(skill, i) in form.key_skills" :key="i" class="vf-skill-tag">
               {{ skill }}
-              <button type="button" class="skill-remove" @click="removeSkill(index)" title="Удалить">×</button>
+              <button type="button" class="vf-skill-del" @click="removeSkill(i)">×</button>
             </span>
             <input
-              ref="skillInput"
+              ref="skillInputRef"
               v-model="newSkill"
-              type="text"
-              class="skills-input"
+              class="vf-skills-input"
               placeholder="Введите навык или вставьте список через «;»..."
               @keydown.enter.prevent="addSkillsFromInput"
               @keydown.188.prevent="addSkillsFromInput"
-              @keydown.delete="handleSkillDelete"
-              @input="handleSkillInput"
-              @paste.prevent="handleSkillPaste"
+              @keydown.delete="onSkillDelete"
+              @input="onSkillInput"
+              @paste.prevent="onSkillPaste"
+              @focus="skillsFocused = true"
+              @blur="skillsFocused = false"
             />
           </div>
         </div>
-
-        <div class="skills-suggestions" v-if="skillSuggestions.length">
-          <span v-for="suggestion in skillSuggestions" :key="suggestion" class="suggestion-tag" @click="addSuggestedSkill(suggestion)">
-            {{ suggestion }}
-          </span>
+        <div v-if="skillSuggestions.length" class="vf-suggestions">
+          <span
+            v-for="s in skillSuggestions"
+            :key="s"
+            class="vf-suggestion"
+            @click="addSuggested(s)"
+          >{{ s }}</span>
         </div>
-      </div>
+      </section>
 
-      <!-- Описание вакансии — задача 3: единый WYSIWYG-редактор -->
-      <div class="form-section">
-        <h3 class="section-title">Описание вакансии</h3>
+      <!-- ── Описание вакансии (Telegram-like редактор) ────────────────── -->
+      <section class="vf-section">
+        <h3 class="vf-section-title">Описание вакансии</h3>
 
-        <!-- Панель форматирования -->
-        <div class="editor-toolbar">
-          <button type="button" class="toolbar-btn" @click="execCmd('bold')" title="Жирный (Ctrl+B)"><b>B</b></button>
-          <button type="button" class="toolbar-btn" @click="execCmd('italic')" title="Курсив (Ctrl+I)"><i>I</i></button>
-          <button type="button" class="toolbar-btn" @click="execCmd('underline')" title="Подчёркнутый"><u>U</u></button>
-          <div class="toolbar-divider"></div>
-          <button type="button" class="toolbar-btn" @click="execCmd('insertUnorderedList')" title="Маркированный список">• —</button>
-          <button type="button" class="toolbar-btn" @click="execCmd('insertOrderedList')" title="Нумерованный список">1.</button>
-          <div class="toolbar-divider"></div>
-          <button type="button" class="toolbar-btn" @click="execHeading('h3')" title="Заголовок">H3</button>
-          <button type="button" class="toolbar-btn" @click="execCmd('removeFormat')" title="Убрать форматирование">✕</button>
+        <!-- Тулбар -->
+        <div class="vf-toolbar">
+          <button type="button" class="vf-tb" :class="{ active: fmt.bold }"       @mousedown.prevent="toggle('bold')"          title="Жирный · Ctrl+B"><b>B</b></button>
+          <button type="button" class="vf-tb" :class="{ active: fmt.italic }"     @mousedown.prevent="toggle('italic')"        title="Курсив · Ctrl+I"><i>I</i></button>
+          <button type="button" class="vf-tb" :class="{ active: fmt.underline }"  @mousedown.prevent="toggle('underline')"     title="Подчёркнутый"><u>U</u></button>
+          <button type="button" class="vf-tb" :class="{ active: fmt.strike }"     @mousedown.prevent="toggle('strikeThrough')" title="Зачёркнутый"><s>S</s></button>
+          <button type="button" class="vf-tb vf-tb-mono" :class="{ active: fmt.code }" @mousedown.prevent="insertInlineCode" title="Код">〈/〉</button>
+          <div class="vf-tb-divider"></div>
+          <button type="button" class="vf-tb" :class="{ active: fmt.ul }" @mousedown.prevent="toggle('insertUnorderedList')" title="Список">• —</button>
+          <button type="button" class="vf-tb" :class="{ active: fmt.ol }" @mousedown.prevent="toggle('insertOrderedList')"   title="Нумерованный список">1.</button>
+          <div class="vf-tb-divider"></div>
+          <button type="button" class="vf-tb" @mousedown.prevent="setBlock('h3')" title="Заголовок H3">H3</button>
+          <button type="button" class="vf-tb" @mousedown.prevent="setBlock('p')"  title="Обычный абзац">P</button>
+          <div class="vf-tb-divider"></div>
+          <button type="button" class="vf-tb" @mousedown.prevent="undo" title="Отменить · Ctrl+Z">↩</button>
+          <button type="button" class="vf-tb" @mousedown.prevent="redo" title="Повторить · Ctrl+Y">↪</button>
+          <button type="button" class="vf-tb vf-tb-clear" @mousedown.prevent="clearFormat" title="Убрать форматирование">✕</button>
         </div>
 
         <!-- Редактируемая область -->
         <div
           ref="editorRef"
-          class="rich-editor"
+          class="vf-editor"
           contenteditable="true"
           @input="onEditorInput"
+          @keyup="updateFormatState"
+          @mouseup="updateFormatState"
           @paste="onEditorPaste"
+          @keydown="onEditorKeydown"
         ></div>
 
-        <p class="editor-hint">Поддерживается форматирование: жирный, курсив, списки, заголовки. При анализе AI использует текстовую версию.</p>
-      </div>
+        <p class="vf-editor-hint">AI использует текстовую версию, генерируемую автоматически из форматированного содержимого.</p>
+      </section>
 
-      <!-- Комментарий для AI -->
-      <div class="form-section">
-        <h3 class="section-title">
+      <!-- ── Комментарий для AI ────────────────────────────────────────── -->
+      <section class="vf-section">
+        <h3 class="vf-section-title">
           Комментарий для AI
-          <span class="section-subtitle">дополнительные инструкции для анализа</span>
+          <span class="vf-title-badge">дополнительные инструкции</span>
         </h3>
         <textarea
           v-model="form.comment_for_ai"
-          class="textarea"
+          class="vf-textarea"
           rows="4"
-          placeholder="Например: Особое внимание обращать на опыт с микросервисами, знание английского не обязательно..."
+          placeholder="Например: особое внимание на микросервисы, английский не обязателен..."
         ></textarea>
-      </div>
+      </section>
 
-      <!-- Шаблоны сообщений (аккордеон) -->
-      <div class="form-section">
-        <div class="accordion-header" @click="showTemplates = !showTemplates">
-          <h3 class="section-title">📋 Шаблоны сообщений</h3>
-          <span class="accordion-icon">{{ showTemplates ? '▼' : '▶' }}</span>
+      <!-- ── Шаблоны (аккордеон) ───────────────────────────────────────── -->
+      <section class="vf-section">
+        <div class="vf-accordion-header" @click="showTemplates = !showTemplates">
+          <h3 class="vf-section-title vf-section-title--mb0">📋 Шаблоны сообщений</h3>
+          <span class="vf-accordion-chevron" :class="{ rotated: showTemplates }">▶</span>
         </div>
-        <div v-if="showTemplates" class="accordion-content">
-          <div class="form-group">
-            <label class="form-label">Приглашение на hh.ru</label>
-            <textarea v-model="form.templates.hh_invitation" class="textarea" rows="3" placeholder="Здравствуйте! Приглашаем вас на вакансию..."></textarea>
+        <Transition name="accordion">
+          <div v-if="showTemplates" class="vf-accordion-body">
+            <div v-for="(tpl, key) in templateConfig" :key="key" class="vf-field">
+              <label class="vf-label">{{ tpl.label }}</label>
+              <textarea v-model="form.templates[key]" class="vf-textarea" :rows="tpl.rows" :placeholder="tpl.placeholder"></textarea>
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Приглашение в Telegram/WhatsApp</label>
-            <textarea v-model="form.templates.messenger_invitation" class="textarea" rows="3" placeholder="Привет! 👋 Рассматриваешь новые возможности?..."></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Вопросы для интервью</label>
-            <textarea v-model="form.templates.interview_questions" class="textarea" rows="4" placeholder="1. Расскажи о своём опыте с Python..."></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Шаблон отказа</label>
-            <textarea v-model="form.templates.rejection" class="textarea" rows="3" placeholder="Благодарим за интерес к вакансии..."></textarea>
-          </div>
-        </div>
-      </div>
+        </Transition>
+      </section>
 
-      <!-- Ошибки формы -->
-      <div v-if="Object.keys(errors).length" class="form-errors">
-        <div class="error-summary">
-          <span class="error-icon">⚠️</span>
-          <span>Пожалуйста, исправьте ошибки в форме</span>
-        </div>
-      </div>
-
-      <!-- Действия -->
-      <div class="form-actions">
+      <!-- ── Действия ──────────────────────────────────────────────────── -->
+      <div class="vf-actions">
         <button type="button" class="btn btn-secondary" @click="handleCancel">Отмена</button>
         <button type="submit" class="btn btn-primary" :disabled="isSubmitting || !isValid">
-          <span v-if="isSubmitting" class="spinner"></span>
-          <span v-else>{{ isEditing ? 'Сохранить' : 'Создать вакансию' }}</span>
+          <span v-if="isSubmitting" class="spinner spinner-sm"></span>
+          <span v-else>{{ isEditing ? 'Сохранить изменения' : 'Создать вакансию' }}</span>
         </button>
       </div>
 
@@ -201,17 +201,14 @@ import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useVacanciesStore } from '@/stores/vacancies'
 
-const props = defineProps({
-  vacancyId: { type: Number, default: null }
-})
+const props = defineProps({ vacancyId: { type: Number, default: null } })
 
-const router = useRouter()
+const router         = useRouter()
 const vacanciesStore = useVacanciesStore()
 
 // ── Форма ──────────────────────────────────────────────────────────────────────
 const form = reactive({
-  title: '',
-  location: '',
+  title: '', location: '',
   salary_range: { min: null, max: null, currency: 'RUB' },
   key_skills: [],
   description_html: '',
@@ -220,12 +217,23 @@ const form = reactive({
   is_active: true
 })
 
-const newSkill      = ref('')
-const skillInput    = ref(null)
-const editorRef     = ref(null)
-const errors        = ref({})
+const errors        = reactive({ title: '' })
 const isSubmitting  = ref(false)
 const showTemplates = ref(false)
+const skillsFocused = ref(false)
+const newSkill      = ref('')
+const skillInputRef = ref(null)
+const editorRef     = ref(null)
+
+// Состояние форматирования (для активных кнопок тулбара)
+const fmt = reactive({ bold: false, italic: false, underline: false, strike: false, code: false, ul: false, ol: false })
+
+const templateConfig = {
+  hh_invitation:        { label: 'Приглашение на hh.ru',       rows: 3, placeholder: 'Здравствуйте! Приглашаем вас на вакансию...' },
+  messenger_invitation: { label: 'Приглашение в мессенджер',   rows: 3, placeholder: 'Привет! 👋 Рассматриваешь новые возможности?...' },
+  interview_questions:  { label: 'Вопросы для интервью',       rows: 4, placeholder: '1. Расскажи о своём опыте...' },
+  rejection:            { label: 'Шаблон отказа',              rows: 3, placeholder: 'Благодарим за интерес к вакансии...' }
+}
 
 // ── Навыки ─────────────────────────────────────────────────────────────────────
 const popularSkills = [
@@ -236,157 +244,158 @@ const popularSkills = [
 
 const skillSuggestions = computed(() => {
   if (!newSkill.value || newSkill.value.length < 2) return []
-  const input = newSkill.value.toLowerCase()
-  return popularSkills
-    .filter(s => s.toLowerCase().includes(input) && !form.key_skills.includes(s))
-    .slice(0, 5)
+  const q = newSkill.value.toLowerCase()
+  return popularSkills.filter(s => s.toLowerCase().includes(q) && !form.key_skills.includes(s)).slice(0, 5)
 })
 
-/** Разбивает строку по разделителям: ; , Enter и добавляет навыки */
 function parseAndAddSkills(raw) {
-  const parts = raw.split(/[;,\n]+/).map(s => s.trim()).filter(Boolean)
-  parts.forEach(skill => {
-    if (skill && !form.key_skills.includes(skill)) {
-      form.key_skills.push(skill)
-    }
+  raw.split(/[;,\n]+/).map(s => s.trim()).filter(Boolean).forEach(s => {
+    if (!form.key_skills.includes(s)) form.key_skills.push(s)
   })
   newSkill.value = ''
 }
+const addSkillsFromInput = () => { if (newSkill.value.trim()) parseAndAddSkills(newSkill.value) }
+const onSkillInput = () => { if (newSkill.value.includes(';') || newSkill.value.includes(',')) parseAndAddSkills(newSkill.value) }
+const onSkillPaste = (e) => parseAndAddSkills((e.clipboardData || window.clipboardData).getData('text'))
+const onSkillDelete = (e) => { if (e.target.value === '' && form.key_skills.length) form.key_skills.pop() }
+const addSuggested = (s) => { if (!form.key_skills.includes(s)) form.key_skills.push(s); newSkill.value = '' }
+const removeSkill = (i) => form.key_skills.splice(i, 1)
 
-const addSkillsFromInput = () => {
-  if (newSkill.value.trim()) parseAndAddSkills(newSkill.value)
-}
-
-/** При вводе символа ";" — немедленно разбиваем */
-const handleSkillInput = (e) => {
-  if (newSkill.value.includes(';') || newSkill.value.includes(',')) {
-    parseAndAddSkills(newSkill.value)
+// ── Зарплата — нормализация ────────────────────────────────────────────────────
+const normalizeSalary = () => {
+  const { min, max } = form.salary_range
+  if (min && max && min > max) {
+    // меняем местами
+    form.salary_range.min = max
+    form.salary_range.max = min
   }
 }
 
-/** Вставка из буфера — тоже разбиваем по разделителям */
-const handleSkillPaste = (e) => {
-  const text = (e.clipboardData || window.clipboardData).getData('text')
-  parseAndAddSkills(text)
-}
-
-const addSuggestedSkill = (skill) => {
-  if (!form.key_skills.includes(skill)) {
-    form.key_skills.push(skill)
-    newSkill.value = ''
-  }
-}
-
-const removeSkill = (index) => form.key_skills.splice(index, 1)
-
-const handleSkillDelete = (e) => {
-  if (e.target.value === '' && form.key_skills.length > 0) form.key_skills.pop()
-}
-
-// ── WYSIWYG редактор ───────────────────────────────────────────────────────────
-function execCmd(cmd) {
+// ── Редактор ───────────────────────────────────────────────────────────────────
+const toggle = (cmd) => {
   document.execCommand(cmd, false, null)
   editorRef.value?.focus()
+  updateFormatState()
 }
 
-function execHeading(tag) {
+const setBlock = (tag) => {
+  // Сначала убираем предыдущий блок-форматирование, потом применяем нужный
   document.execCommand('formatBlock', false, tag)
   editorRef.value?.focus()
 }
 
-function onEditorInput() {
-  form.description_html = editorRef.value?.innerHTML || ''
+const clearFormat = () => {
+  document.execCommand('removeFormat', false, null)
+  document.execCommand('formatBlock', false, 'p')
+  editorRef.value?.focus()
 }
 
-function onEditorPaste(e) {
-  // Вставка как plain text, сохраняя переносы строк
+const insertInlineCode = () => {
+  const sel = window.getSelection()
+  if (!sel || sel.isCollapsed) {
+    document.execCommand('insertHTML', false, '<code>код</code>')
+  } else {
+    const text = sel.toString()
+    document.execCommand('insertHTML', false, `<code>${text}</code>`)
+  }
+  editorRef.value?.focus()
+}
+
+const undo = () => { document.execCommand('undo', false, null); editorRef.value?.focus() }
+const redo = () => { document.execCommand('redo', false, null); editorRef.value?.focus() }
+
+const updateFormatState = () => {
+  fmt.bold      = document.queryCommandState('bold')
+  fmt.italic    = document.queryCommandState('italic')
+  fmt.underline = document.queryCommandState('underline')
+  fmt.strike    = document.queryCommandState('strikeThrough')
+  fmt.ul        = document.queryCommandState('insertUnorderedList')
+  fmt.ol        = document.queryCommandState('insertOrderedList')
+}
+
+const onEditorInput = () => {
+  form.description_html = editorRef.value?.innerHTML || ''
+  updateFormatState()
+}
+
+const onEditorPaste = (e) => {
   e.preventDefault()
+  // Вставляем только plain text
   const text = (e.clipboardData || window.clipboardData).getData('text/plain')
   document.execCommand('insertText', false, text)
+}
+
+const onEditorKeydown = (e) => {
+  // Ctrl+B/I/U/Z/Y — нативная поддержка, только обновляем состояние
+  if (e.ctrlKey || e.metaKey) {
+    setTimeout(updateFormatState, 0)
+  }
 }
 
 // ── Валидация ──────────────────────────────────────────────────────────────────
 const isEditing = computed(() => !!props.vacancyId)
 const isValid   = computed(() => form.title && form.title.length >= 3)
 
-const validateField = (field) => {
-  const e = { ...errors.value }
-  if (field === 'title') {
-    if (!form.title) e.title = 'Название обязательно'
-    else if (form.title.length < 3) e.title = 'Минимум 3 символа'
-    else delete e.title
-  }
-  if (field === 'salary_range') {
-    if (form.salary_range.min && form.salary_range.max && form.salary_range.min > form.salary_range.max)
-      e.salary_range = 'Минимальная зарплата не может быть больше максимальной'
-    else delete e.salary_range
-  }
-  errors.value = e
+const validateTitle = () => {
+  if (!form.title)              errors.title = 'Название обязательно'
+  else if (form.title.length < 3) errors.title = 'Минимум 3 символа'
+  else                          errors.title = ''
 }
 
-// ── Загрузка для редактирования ────────────────────────────────────────────────
+// ── Загрузка ───────────────────────────────────────────────────────────────────
 const loadVacancy = async () => {
   try {
-    const vacancy = await vacanciesStore.fetchVacancy(props.vacancyId)
-    form.title        = vacancy.title
-    form.location     = vacancy.location || ''
-    form.salary_range = vacancy.salary_range || { min: null, max: null, currency: 'RUB' }
-    form.key_skills   = vacancy.key_skills || []
-    // Загружаем description: предпочитаем html, иначе text
-    const html = vacancy.description_html || ''
-    const text = vacancy.description_text || ''
-    form.description_html = html || (text ? text.replace(/\n/g, '<br>') : '')
-    form.comment_for_ai   = vacancy.comment_for_ai || ''
-    form.templates = vacancy.templates || { hh_invitation: '', messenger_invitation: '', interview_questions: '', rejection: '' }
-    form.is_active = vacancy.is_active
-
-    // Инициализируем редактор
+    const v = await vacanciesStore.fetchVacancy(props.vacancyId)
+    form.title          = v.title
+    form.location       = v.location || ''
+    form.salary_range   = v.salary_range || { min: null, max: null, currency: 'RUB' }
+    form.key_skills     = v.key_skills || []
+    const html          = v.description_html || (v.description_text ? v.description_text.replace(/\n/g, '<br>') : '')
+    form.description_html = html
+    form.comment_for_ai = v.comment_for_ai || ''
+    form.templates      = v.templates || { hh_invitation: '', messenger_invitation: '', interview_questions: '', rejection: '' }
+    form.is_active      = v.is_active
     await nextTick()
-    if (editorRef.value) editorRef.value.innerHTML = form.description_html
-  } catch (err) {
-    console.error('Ошибка загрузки вакансии:', err)
-  }
+    if (editorRef.value) editorRef.value.innerHTML = html
+  } catch (e) { console.error('Ошибка загрузки:', e) }
 }
 
 // ── Отправка ───────────────────────────────────────────────────────────────────
-const handleCancel  = () => router.push('/vacancies')
+const handleCancel = () => router.push('/vacancies')
 
 const handleSubmit = async () => {
-  validateField('title')
-  validateField('salary_range')
-  if (Object.keys(errors.value).length) return
+  validateTitle()
+  if (errors.title) return
 
   isSubmitting.value = true
   try {
-    // Формируем и text-версию из HTML для AI
-    const tempDiv = document.createElement('div')
-    tempDiv.innerHTML = form.description_html
-    const descriptionText = tempDiv.textContent || tempDiv.innerText || ''
+    const tmp = document.createElement('div')
+    tmp.innerHTML = form.description_html
+    const descText = tmp.textContent || tmp.innerText || ''
 
-    const vacancyData = {
+    const payload = {
       title:            form.title,
       location:         form.location || undefined,
-      salary_range:     { min: form.salary_range.min || undefined, max: form.salary_range.max || undefined, currency: form.salary_range.currency },
+      salary_range: {
+        min:      form.salary_range.min  || undefined,
+        max:      form.salary_range.max  || undefined,
+        currency: form.salary_range.currency
+      },
       key_skills:       form.key_skills,
       description_html: form.description_html || undefined,
-      description_text: descriptionText || undefined,   // AI-версия автоматически
+      description_text: descText || undefined,
       comment_for_ai:   form.comment_for_ai || undefined,
       templates:        form.templates,
       is_active:        form.is_active
     }
 
-    if (isEditing.value) await vacanciesStore.updateVacancy(props.vacancyId, vacancyData)
-    else                 await vacanciesStore.createVacancy(vacancyData)
+    if (isEditing.value) await vacanciesStore.updateVacancy(props.vacancyId, payload)
+    else                 await vacanciesStore.createVacancy(payload)
 
     router.push('/vacancies')
-  } catch (err) {
-    console.error('Ошибка сохранения:', err)
-  } finally {
-    isSubmitting.value = false
-  }
+  } catch (e) { console.error('Ошибка сохранения:', e) }
+  finally { isSubmitting.value = false }
 }
-
-watch(() => [form.salary_range.min, form.salary_range.max], () => validateField('salary_range'))
 
 onMounted(async () => {
   if (isEditing.value) await loadVacancy()
@@ -395,145 +404,189 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.vacancy-form { max-width: 900px; margin: 0 auto; }
+/* ── Корень ────────────────────────────────────────────────────────────────── */
+.vf { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--spacing-sm); }
 
-.form-section {
+/* ── Секции ────────────────────────────────────────────────────────────────── */
+.vf-section {
   background: var(--color-surface);
   border-radius: var(--border-radius);
   padding: var(--spacing);
-  margin-bottom: var(--spacing);
   border: 1px solid var(--color-border);
   transition: var(--transition);
 }
-.form-section:hover { box-shadow: 0 8px 30px var(--color-shadow); }
+.vf-section:hover { box-shadow: 0 6px 28px var(--color-shadow); }
 
-.section-title {
-  font-size: 18px; font-weight: 600; color: var(--color-text);
-  margin-bottom: var(--spacing-sm);
+.vf-section-title {
+  font-size: 15px; font-weight: 700; letter-spacing: 0.02em;
+  color: var(--color-text); margin-bottom: var(--spacing-sm);
   display: flex; align-items: center; gap: var(--spacing-xs); flex-wrap: wrap;
 }
-.section-subtitle { font-size: 13px; font-weight: normal; color: var(--color-text-muted); margin-left: auto; }
+.vf-section-title--mb0 { margin-bottom: 0; }
+.vf-title-badge {
+  font-size: 11px; font-weight: 500; color: var(--color-text-muted);
+  background: var(--color-surface-darker); border-radius: var(--border-radius-pill);
+  padding: 2px 9px; white-space: nowrap;
+}
+.vf-section-hint { font-size: 13px; color: var(--color-text-muted); margin-bottom: var(--spacing-sm); }
 
-.form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); }
-.full-width { grid-column: 1 / -1; }
-.salary-grid { grid-template-columns: 1fr 1fr 0.5fr; }
-.form-group { display: flex; flex-direction: column; gap: var(--spacing-xxs); }
-.form-label { font-size: 14px; font-weight: 600; color: var(--color-text); margin-left: 4px; }
-.required { color: var(--color-warning-border); margin-left: 2px; }
+/* ── Сетка ─────────────────────────────────────────────────────────────────── */
+.vf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-sm); }
+.vf-full { grid-column: 1 / -1; }
+.vf-salary-grid { grid-template-columns: 1fr 1fr 140px; }
 
-.input, .textarea, .select {
-  width: 100%; padding: 12px;
-  border: 2px solid var(--color-border); border-radius: var(--border-radius-sm);
+/* ── Поля ──────────────────────────────────────────────────────────────────── */
+.vf-field { display: flex; flex-direction: column; gap: 6px; }
+.vf-toggle-field { justify-content: flex-end; }
+
+.vf-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--color-text-muted);
+}
+.vf-req { color: #e53e3e; }
+
+.vf-input, .vf-select, .vf-textarea {
+  width: 100%; padding: 11px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
   font-size: 14px; font-family: inherit;
-  background: var(--color-surface-lighter); color: var(--color-text); transition: var(--transition);
-}
-.textarea { resize: vertical; min-height: 100px; }
-.input:hover, .textarea:hover, .select:hover { border-color: var(--color-primary); }
-.input:focus, .textarea:focus, .select:focus {
-  outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft);
-}
-.input.error { border-color: var(--color-warning-border); }
-.error-text { font-size: 12px; color: var(--color-warning-border); margin-left: 4px; }
-
-/* Toggle */
-.toggle-group { display: flex; align-items: center; height: 100%; }
-.toggle-label { display: flex; align-items: center; gap: var(--spacing-xs); cursor: pointer; }
-.toggle-checkbox { width: 20px; height: 20px; cursor: pointer; accent-color: var(--color-primary); }
-.toggle-text { font-size: 14px; color: var(--color-text); }
-
-/* Skills */
-.skills-input-container {
-  border: 2px solid var(--color-border); border-radius: var(--border-radius-sm);
-  padding: 8px; background: var(--color-surface-lighter); transition: var(--transition);
-}
-.skills-input-container:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
-.skills-tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.skill-tag {
-  display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px;
-  background: var(--color-primary-soft); border-radius: var(--border-radius-pill);
-  font-size: 13px; color: var(--color-primary-dark); border: 1px solid var(--color-primary);
-}
-.skill-remove {
-  background: none; border: none; color: var(--color-primary-dark);
-  font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; opacity: 0.7; transition: var(--transition);
-}
-.skill-remove:hover { opacity: 1; transform: scale(1.2); }
-.skills-input {
-  flex: 1; min-width: 150px; border: none; outline: none; padding: 6px;
-  font-size: 14px; background: transparent; color: var(--color-text);
-}
-.skills-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--spacing-xs); }
-.suggestion-tag {
-  padding: 4px 10px; background: var(--color-surface); border: 1px dashed var(--color-primary);
-  border-radius: var(--border-radius-pill); font-size: 12px; color: var(--color-primary);
-  cursor: pointer; transition: var(--transition);
-}
-.suggestion-tag:hover { background: var(--color-primary-soft); transform: translateY(-1px); }
-
-/* WYSIWYG Editor */
-.editor-toolbar {
-  display: flex; align-items: center; gap: 2px; flex-wrap: wrap;
-  padding: 6px 8px; background: var(--color-surface-darker);
-  border: 2px solid var(--color-border); border-bottom: none;
-  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
-}
-.toolbar-btn {
-  padding: 4px 10px; background: var(--color-surface); border: 1px solid var(--color-border);
-  border-radius: 6px; font-size: 13px; cursor: pointer; transition: var(--transition);
-  color: var(--color-text); font-family: inherit;
-}
-.toolbar-btn:hover { background: var(--color-primary-soft); border-color: var(--color-primary); color: var(--color-primary); }
-.toolbar-divider { width: 1px; height: 22px; background: var(--color-border); margin: 0 4px; }
-
-.rich-editor {
-  min-height: 180px; max-height: 500px; overflow-y: auto;
-  padding: 14px 16px;
-  border: 2px solid var(--color-border); border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
   background: var(--color-surface-lighter); color: var(--color-text);
-  font-size: 14px; line-height: 1.7; font-family: inherit;
   transition: var(--transition); outline: none;
 }
-.rich-editor:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
-.rich-editor:deep(h1), .rich-editor:deep(h2), .rich-editor:deep(h3) {
-  font-weight: 600; color: var(--color-text); margin: 8px 0 4px;
+.vf-input:hover, .vf-select:hover, .vf-textarea:hover { border-color: rgba(16,106,183,0.35); }
+.vf-input:focus, .vf-select:focus, .vf-textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
 }
-.rich-editor:deep(ul), .rich-editor:deep(ol) { padding-left: 20px; margin: 6px 0; }
-.rich-editor:deep(li) { margin: 2px 0; }
-.rich-editor[contenteditable="true"]:empty:before {
-  content: "Введите описание вакансии...";
+.vf-input--error { border-color: #e53e3e !important; background: #fff5f5; }
+
+/* Сообщение об ошибке — явный контрастный цвет */
+.vf-error-msg {
+  font-size: 12px;
+  color: #c53030;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+  padding: 4px 10px;
+  display: inline-block;
+}
+
+.vf-textarea { resize: vertical; min-height: 90px; }
+.vf-select { cursor: pointer; }
+
+/* ── Toggle ────────────────────────────────────────────────────────────────── */
+.vf-toggle { display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
+.vf-toggle-input { display: none; }
+.vf-toggle-track {
+  width: 44px; height: 24px; border-radius: 12px;
+  background: var(--color-border-strong); position: relative; transition: background 0.2s;
+  flex-shrink: 0;
+}
+.vf-toggle-input:checked ~ .vf-toggle-track { background: var(--color-primary); }
+.vf-toggle-thumb {
+  position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: left 0.2s;
+}
+.vf-toggle-input:checked ~ .vf-toggle-track .vf-toggle-thumb { left: 23px; }
+.vf-toggle-label { font-size: 14px; color: var(--color-text); font-weight: 500; }
+
+/* ── Навыки ────────────────────────────────────────────────────────────────── */
+.vf-skills-box {
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  padding: 8px 10px;
+  background: var(--color-surface-lighter);
+  transition: var(--transition);
+  min-height: 48px;
+}
+.vf-skills-box--focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.vf-skills-tags { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+.vf-skill-tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px;
+  background: var(--color-primary-soft);
+  border: 1px solid rgba(16,106,183,0.2);
+  border-radius: var(--border-radius-pill);
+  font-size: 13px; font-weight: 500; color: var(--color-primary-dark);
+}
+.vf-skill-del {
+  background: none; border: none; cursor: pointer;
+  color: var(--color-primary); font-size: 16px; line-height: 1;
+  padding: 0 1px; opacity: 0.6; transition: opacity 0.15s;
+}
+.vf-skill-del:hover { opacity: 1; }
+.vf-skills-input {
+  flex: 1; min-width: 140px; border: none; outline: none;
+  padding: 4px 6px; font-size: 14px; background: transparent; color: var(--color-text);
+}
+.vf-suggestions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.vf-suggestion {
+  padding: 3px 10px; background: var(--color-surface-darker);
+  border: 1px dashed rgba(16,106,183,0.3); border-radius: var(--border-radius-pill);
+  font-size: 12px; color: var(--color-primary); cursor: pointer; transition: var(--transition);
+}
+.vf-suggestion:hover { background: var(--color-primary-soft); border-style: solid; }
+
+/* ── Редактор ──────────────────────────────────────────────────────────────── */
+.vf-toolbar {
+  display: flex; align-items: center; gap: 2px; flex-wrap: wrap;
+  padding: 6px 10px;
+  background: var(--color-surface-darker);
+  border: 1.5px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+}
+.vf-tb {
+  padding: 5px 10px; min-width: 34px; border: 1px solid transparent;
+  border-radius: 8px; font-size: 13px; font-family: inherit;
+  cursor: pointer; transition: var(--transition);
+  color: var(--color-text-light); background: none; line-height: 1.4;
+}
+.vf-tb:hover  { background: var(--color-primary-soft); color: var(--color-primary); }
+.vf-tb.active { background: var(--color-primary-soft); color: var(--color-primary); border-color: rgba(16,106,183,0.25); }
+.vf-tb-mono   { font-family: monospace; font-size: 12px; }
+.vf-tb-clear  { color: #e53e3e; }
+.vf-tb-clear:hover { background: #fff5f5; color: #c53030; }
+.vf-tb-divider { width: 1px; height: 20px; background: var(--color-border); margin: 0 3px; flex-shrink: 0; }
+
+.vf-editor {
+  min-height: 200px; max-height: 480px; overflow-y: auto;
+  padding: 14px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+  background: var(--color-surface-lighter); color: var(--color-text);
+  font-size: 14px; line-height: 1.75; font-family: inherit;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.vf-editor:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-soft); }
+.vf-editor:deep(h1),.vf-editor:deep(h2),.vf-editor:deep(h3) { font-weight: 700; color: var(--color-text); margin: 10px 0 5px; }
+.vf-editor:deep(ul),.vf-editor:deep(ol) { padding-left: 22px; margin: 6px 0; }
+.vf-editor:deep(li) { margin: 3px 0; }
+.vf-editor:deep(code) { background: var(--color-surface-darker); padding: 1px 6px; border-radius: 5px; font-family: monospace; font-size: 13px; }
+.vf-editor:deep(p) { margin: 4px 0; }
+.vf-editor[contenteditable="true"]:empty::before {
+  content: "Введите описание вакансии — поддерживается форматирование...";
   color: var(--color-text-muted); pointer-events: none;
 }
+.vf-editor-hint { font-size: 12px; color: var(--color-text-muted); margin-top: 7px; padding-left: 2px; }
 
-.editor-hint { font-size: 12px; color: var(--color-text-muted); margin-top: 6px; padding-left: 4px; }
+/* ── Аккордеон шаблонов ────────────────────────────────────────────────────── */
+.vf-accordion-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0; }
+.vf-accordion-chevron { font-size: 12px; color: var(--color-text-muted); transition: transform 0.2s; }
+.vf-accordion-chevron.rotated { transform: rotate(90deg); }
+.vf-accordion-body { padding-top: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-sm); }
+.accordion-enter-active,.accordion-leave-active { transition: all 0.25s ease; overflow: hidden; }
+.accordion-enter-from,.accordion-leave-to { opacity: 0; max-height: 0; padding-top: 0; }
+.accordion-enter-to,.accordion-leave-from { max-height: 600px; }
 
-/* Accordion */
-.accordion-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: var(--spacing-xs) 0; }
-.accordion-icon { font-size: 14px; color: var(--color-text-muted); transition: var(--transition); }
-.accordion-header:hover .accordion-icon { color: var(--color-primary); }
-.accordion-content { animation: slideDown 0.3s ease; padding-top: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-sm); }
-@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Form errors */
-.form-errors {
-  background: var(--color-error); border-left: 6px solid var(--color-error-border);
-  border-radius: var(--border-radius-sm); padding: var(--spacing-sm); margin-bottom: var(--spacing);
-}
-.error-summary { display: flex; align-items: center; gap: var(--spacing-xs); color: var(--color-error-text); font-weight: 600; }
-.error-icon { font-size: 18px; }
-
-/* Actions */
-.form-actions { display: flex; justify-content: flex-end; gap: var(--spacing-sm); margin-top: var(--spacing); }
-
-.spinner {
-  display: inline-block; width: 16px; height: 16px;
-  border: 2px solid rgba(255,255,255,0.3); border-radius: 50%;
-  border-top-color: white; animation: spin 0.8s linear infinite; margin-right: 8px;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
+/* ── Кнопки ─────────────────────────────────────────────────────────────────── */
+.vf-actions { display: flex; justify-content: flex-end; gap: var(--spacing-xs); padding-top: var(--spacing-xs); }
 
 @media (max-width: 768px) {
-  .form-grid, .salary-grid { grid-template-columns: 1fr; }
-  .form-actions { flex-direction: column; }
-  .form-actions .btn { width: 100%; }
+  .vf-grid,.vf-salary-grid { grid-template-columns: 1fr; }
+  .vf-actions { flex-direction: column; }
+  .vf-actions .btn { width: 100%; }
 }
 </style>

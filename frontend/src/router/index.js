@@ -12,17 +12,17 @@ const router = createRouter({
     { path: '/register', name: 'register', component: () => import('@/views/RegisterView.vue'), meta: { guest: true } },
 
     // ── Защищённые маршруты ────────────────────────────────────────────────
-    { path: '/vacancies',           name: 'vacancies',      component: () => import('@/views/VacanciesView.vue'),     meta: { requiresAuth: true } },
-    { path: '/vacancies/new',       name: 'new-vacancy',    component: () => import('@/views/VacancyEditView.vue'),   meta: { requiresAuth: true } },
-    { path: '/vacancies/:id',       name: 'vacancy-detail', component: () => import('@/views/VacancyDetailView.vue'), meta: { requiresAuth: true }, props: true },
-    { path: '/vacancies/:id/edit',  name: 'edit-vacancy',   component: () => import('@/views/VacancyEditView.vue'),   meta: { requiresAuth: true }, props: true },
+    { path: '/vacancies',          name: 'vacancies',      component: () => import('@/views/VacanciesView.vue'),     meta: { requiresAuth: true } },
+    { path: '/vacancies/new',      name: 'new-vacancy',    component: () => import('@/views/VacancyEditView.vue'),   meta: { requiresAuth: true } },
+    { path: '/vacancies/:id',      name: 'vacancy-detail', component: () => import('@/views/VacancyDetailView.vue'), meta: { requiresAuth: true }, props: true },
+    { path: '/vacancies/:id/edit', name: 'edit-vacancy',   component: () => import('@/views/VacancyEditView.vue'),   meta: { requiresAuth: true }, props: true },
 
     { path: '/history',     name: 'history',         component: () => import('@/views/HistoryView.vue'),        meta: { requiresAuth: true } },
     { path: '/history/:id', name: 'analysis-detail', component: () => import('@/views/AnalysisDetailView.vue'), meta: { requiresAuth: true }, props: true },
 
     { path: '/profile', name: 'profile', component: () => import('@/views/ProfileView.vue'), meta: { requiresAuth: true } },
 
-    { path: '/admin', name: 'admin', component: () => import('@/views/AdminView.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
+    // ── Только для администраторов ─────────────────────────────────────────
     { path: '/prompts', name: 'prompts', component: () => import('@/views/PromptsView.vue'), meta: { requiresAuth: true, requiresAdmin: true } },
 
     // ── Catch-all ──────────────────────────────────────────────────────────
@@ -33,7 +33,6 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
-  // Подгружаем данные пользователя если есть токен
   if (!authStore.user && authStore.token) {
     await authStore.fetchUser()
   }
@@ -41,17 +40,9 @@ router.beforeEach(async (to) => {
   const isAuth  = authStore.isAuthenticated
   const isAdmin = authStore.isAdmin
 
-  if (to.meta.requiresAuth && !isAuth) {
-    return { name: 'login', query: { redirect: to.fullPath } }
-  }
-
-  if (to.meta.guest && isAuth) {
-    return { name: 'vacancies' }
-  }
-
-  if (to.meta.requiresAdmin && !isAdmin) {
-    return { name: 'vacancies' }
-  }
+  if (to.meta.requiresAuth && !isAuth)  return { name: 'login', query: { redirect: to.fullPath } }
+  if (to.meta.guest      && isAuth)     return { name: 'vacancies' }
+  if (to.meta.requiresAdmin && !isAdmin) return { name: 'vacancies' }
 })
 
 export default router
