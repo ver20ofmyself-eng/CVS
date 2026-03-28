@@ -1,0 +1,43 @@
+# CVS Analyzer — .claudeignore
+# Исключаем из контекста AI-разработчика всё, что не нужно для работы
+
+# Зависимости
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+
+# Сборки
+dist/
+build/
+.next/
+
+# Git
+.git/
+
+# Lock-файлы (большие, не нужны для понимания кода)
+package-lock.json
+poetry.lock
+*.lock
+
+# Медиа (бинарные, не читаются)
+*.png
+*.ico
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.woff
+*.woff2
+
+# Временные
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "cvs-analyzer"
+version = "0.1.0"
+description = ""
+authors = ["KN-p3n <ver2.0ofmyself@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+psycopg2-binary = "^2.9.11"
+sqlalchemy = "^2.0.48"
+passlib = "^1.7.4"
+pydantic-settings = "^2.13.1"
+argon2-cffi = "^25.1.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

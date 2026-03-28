@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>CVS Analyzer</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <div class="popup-header">
+      <div class="popup-logo"><span class="logo-icon">🔍</span><span class="logo-text">CVS Analyzer</span></div>
+      <span class="popup-version">v1.1</span>
+    </div>
+
+    <!-- Auth -->
+    <div id="auth-section" class="section">
+      <h3 class="section-title">Вход в систему</h3>
+      <div class="field"><input type="email" id="email" placeholder="Email" class="input"></div>
+      <div class="field"><input type="password" id="password" placeholder="Пароль" class="input"></div>
+      <label class="checkbox"><input type="checkbox" id="remember-me" checked><span>Запомнить меня</span></label>
+      <button id="login-btn" class="btn btn-primary btn-full">🔐 Войти</button>
+      <div id="login-error" class="error-msg"></div>
+    </div>
+
+    <!-- Main -->
+    <div id="main-section" class="section" style="display:none;">
+      <div class="user-row">
+        <div class="user-info">
+          <span class="user-avatar">👤</span>
+          <span id="user-email" class="user-email"></span>
+        </div>
+        <span id="analyses-badge" class="analyses-badge">⚡ 0</span>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Вакансия</label>
+        <div class="select-row">
+          <select id="vacancy-select" class="select"><option value="">Загрузка...</option></select>
+          <button id="refresh-btn" class="icon-btn" title="Обновить">🔄</button>
+        </div>
+      </div>
+
+      <button id="analyze-btn" class="btn btn-primary btn-full" disabled>⚡ Анализировать</button>
+
+      <!-- Последние анализы -->
+      <div id="recent-section" class="recent-section" style="display:none;">
+        <h4 class="recent-title">Последние анализы</h4>
+        <div id="recent-list" class="recent-list"></div>
+      </div>
+
+      <button id="logout-btn" class="btn btn-text">Выйти</button>
+    </div>
+
+    <div id="loading" class="loading" style="display:none;"><div class="spinner"></div><span>Загрузка...</span></div>
+  </div>
+
+  <script src="../utils/api.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
